@@ -1,25 +1,22 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Google.Protobuf.Collections;
 using Grpc.Core;
-using Keda.Cosmosdb.Scaler;
 using Keda.CosmosDB.Scaler.Protos;
 using Microsoft.Extensions.Logging;
 using static Keda.CosmosDB.Scaler.Protos.ExternalScaler;
 using Keda.CosmosDB.Scaler.Extensions;
 using Keda.CosmosDB.Scaler.Repository;
-using Keda.Cosmosdb.Scaler.Repository;
 
 namespace Keda.CosmosDB.Scaler.Services
 {
     public class CosmosDBExternalScaler : ExternalScalerBase
     {
         private readonly ILogger _logger;
-        private readonly ICosmosDBRepository _cosmosDBRepository;
+        private readonly ICosmosDBEstimator _cosmosDBRepository;
 
-        public CosmosDBExternalScaler(ILoggerFactory loggerFactory, ICosmosDBRepository cosmosDBRepository)
+        public CosmosDBExternalScaler(ILogger<CosmosDBExternalScaler> logger, ICosmosDBEstimator cosmosDBRepository)
         {
-            _logger = loggerFactory.CreateLogger<CosmosDBExternalScaler>();
+            _logger = logger;
             _cosmosDBRepository = cosmosDBRepository;
         }
 
@@ -96,11 +93,10 @@ namespace Keda.CosmosDB.Scaler.Services
 
             return trigger;
         }
-
+            
         private async Task<long> GetEstimatedWork(CosmosDBTrigger trigger)
         {
-            var estimator = ChangeFeedEstimatorFactory.Instance.GetOrCreateEstimator(trigger);
-            return await _cosmosDBRepository.GetEstimatedWork(estimator);
+            return await _cosmosDBRepository.GetEstimatedWork(trigger);
         }
     }
 }
